@@ -1,0 +1,59 @@
+#api_version data-version="#{@api_version}"
+#header
+  .swagger-ui-wrap
+    - if true
+      = link_to 'http://swagger.io', id: 'logo', target: '_blank'
+        span.logo__title
+        =< link_to api_docs_friends_management_swagger_path(version: 1)
+          button class="#{@api_version == '1' ? 'active' : ''}" v1
+      form#api_selector
+        .input
+          input#input_baseUrl placeholder="http://example.com/api" name="baseUrl" type="text"
+        .input
+          input#input_apiKey placeholder="api key" name="apiKey" type="text"
+        .input
+          = link_to 'Explore', '#', id: 'explore', class: 'header__btn'
+#message-bar.swagger-ui-wrap &nbsp;
+#swagger-ui-container.swagger-ui-wrap
+
+- if true
+  javascript:
+    window.swaggerUi = new SwaggerUi({
+      url: '/api/v1/docs.json',
+      dom_id: "swagger-ui-container",
+      swaggerRequestHeaders: ($('#api_version').data("version") == 1) ? "application/json" : "application/json;application/vnd.sagn.v2",
+      supportHeaderParams: true,
+      showRequestHeaders: true,
+      validatorUrl: null,
+      apisSorter: 'alpha',
+      supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+      onComplete: function(swaggerApi, swaggerUi){
+        if(console) {
+          console.log("Loaded SwaggerUI")
+          console.log(swaggerApi);
+          console.log(swaggerUi);
+        }
+        $('pre code').each(function(i, e) {hljs.highlightBlock(e)});
+        addApiKeyAuthorization();
+      },
+      onFailure: function(data) {
+        if(console) {
+          console.log("Unable to Load SwaggerUI");
+          console.log(data);
+        }
+      },
+      docExpansion: "none"
+    });
+
+    function addApiKeyAuthorization(){
+      var key = encodeURIComponent( $('#input_apiKey')[0].value );
+      if(key && key.trim() != "") {
+        window.swaggerUi.api.clientAuthorizations.add("bearer", new SwaggerClient.ApiKeyAuthorization("Authorization", "Bearer " + key, "header"));
+        console.log("Set bearer token: " + key);
+      }
+    }
+
+    $('#input_apiKey').change(addApiKeyAuthorization);
+
+    window.swaggerUi.load();
+
